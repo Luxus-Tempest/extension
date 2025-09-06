@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Tab Activity Tracker",
+  "version": "1.0.0",
+  "description": "Enregistre automatiquement la dernière URL de chaque onglet pour un accès rapide même après fermeture",
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Historique des Onglets",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
