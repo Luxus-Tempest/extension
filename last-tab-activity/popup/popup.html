@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Derniers onglets</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="title">Derniers onglets</h1>
+      <div class="actions">
+        <button id="clearAllBtn" class="btn btn-danger" title="Tout effacer">Effacer</button>
+      </div>
+    </header>
+    <div class="search">
+      <input id="searchInput" type="search" placeholder="Rechercher par titre ou URL..." autofocus />
+    </div>
+    <main>
+      <ul id="list" class="list" role="list"></ul>
+      <template id="itemTemplate">
+        <li class="item">
+          <img class="favicon" alt="" />
+          <div class="meta">
+            <div class="line1">
+              <span class="title"></span>
+              <span class="status"></span>
+            </div>
+            <div class="line2 url"></div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-open" title="Ouvrir">Ouvrir</button>
+            <button class="btn btn-copy" title="Copier l'URL">Copier</button>
+            <button class="btn btn-delete" title="Supprimer">Suppr.</button>
+          </div>
+        </li>
+      </template>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+  </html>
+
