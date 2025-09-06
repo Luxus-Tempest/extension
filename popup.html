@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des Onglets</title>
+    <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>🕒 Historique des Onglets</h1>
+                    <span class="entry-count" id="entryCount">0 onglets</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-icon" id="refreshBtn" title="Actualiser">
+                        <span class="icon">🔄</span>
+                    </button>
+                    <button class="btn btn-icon" id="clearBtn" title="Effacer tout">
+                        <span class="icon">🗑️</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barre de recherche -->
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Rechercher dans l'historique..." 
+                    autocomplete="off"
+                />
+                <button class="search-clear" id="searchClear" title="Effacer la recherche">
+                    <span class="icon">✕</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">
+                    <span class="icon">📋</span>
+                    Tous
+                </button>
+                <button class="filter-tab" data-filter="today">
+                    <span class="icon">📅</span>
+                    Aujourd'hui
+                </button>
+                <button class="filter-tab" data-filter="video">
+                    <span class="icon">🎥</span>
+                    Vidéos
+                </button>
+                <button class="filter-tab" data-filter="streaming">
+                    <span class="icon">📺</span>
+                    Streaming
+                </button>
+            </div>
+        </div>
+
+        <!-- Zone de contenu principal -->
+        <main class="main-content">
+            <!-- État de chargement -->
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <p>Chargement de l'historique...</p>
+            </div>
+
+            <!-- État vide -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>Aucun onglet enregistré</h3>
+                <p>Naviguez sur le web pour voir vos onglets apparaître ici automatiquement.</p>
+            </div>
+
+            <!-- État de recherche vide -->
+            <div class="empty-search-state" id="emptySearchState" style="display: none;">
+                <div class="empty-icon">🔍</div>
+                <h3>Aucun résultat trouvé</h3>
+                <p>Essayez avec des termes différents.</p>
+            </div>
+
+            <!-- Liste des onglets -->
+            <div class="tab-list" id="tabList">
+                <!-- Les éléments seront générés dynamiquement -->
+            </div>
+        </main>
+
+        <!-- Pied de page -->
+        <footer class="footer">
+            <div class="footer-content">
+                <span class="footer-text">
+                    Dernière mise à jour: <span id="lastUpdate">-</span>
+                </span>
+                <div class="footer-actions">
+                    <button class="btn btn-small" id="settingsBtn">
+                        <span class="icon">⚙️</span>
+                        Paramètres
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirmer l'action</h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Êtes-vous sûr de vouloir continuer ?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Annuler</button>
+                <button class="btn btn-danger" id="modalConfirm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal des paramètres -->
+    <div class="modal-overlay" id="settingsModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Paramètres</h3>
+                <button class="modal-close" id="settingsModalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="autoCleanup" />
+                        <span class="checkmark"></span>
+                        Nettoyage automatique (garder 100 entrées max)
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="showFavicons" />
+                        <span class="checkmark"></span>
+                        Afficher les favicons des sites
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <input type="checkbox" id="groupByDomain" />
+                        <span class="checkmark"></span>
+                        Grouper par domaine
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveSettings">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+</body>
+</html>
