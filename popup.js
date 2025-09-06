@@ -3,26 +3,29 @@
  * Gère l'affichage et les interactions avec l'historique des onglets
  */
 
-import { TabStorage } from './modules/storage.js';
-import { Utils } from './modules/utils.js';
+import { TabStorage } from "./modules/storage.js";
+import { Utils } from "./modules/utils.js";
 
 class TabHistoryPopup {
   constructor() {
     this.storage = new TabStorage();
-    this.currentFilter = 'all';
-    this.currentSearchTerm = '';
+    this.currentFilter = "all";
+    this.currentSearchTerm = "";
     this.allEntries = [];
     this.filteredEntries = [];
     this.settings = {
       autoCleanup: true,
       showFavicons: true,
-      groupByDomain: false
+      groupByDomain: false,
     };
 
     this.initializeElements();
     this.setupEventListeners();
     this.loadSettings();
     this.loadTabHistory();
+
+    // Ajouter un bouton de test pour le débogage
+    this.addTestButton();
   }
 
   /**
@@ -30,40 +33,40 @@ class TabHistoryPopup {
    */
   initializeElements() {
     // Éléments principaux
-    this.entryCount = document.getElementById('entryCount');
-    this.searchInput = document.getElementById('searchInput');
-    this.searchClear = document.getElementById('searchClear');
-    this.tabList = document.getElementById('tabList');
-    this.lastUpdate = document.getElementById('lastUpdate');
+    this.entryCount = document.getElementById("entryCount");
+    this.searchInput = document.getElementById("searchInput");
+    this.searchClear = document.getElementById("searchClear");
+    this.tabList = document.getElementById("tabList");
+    this.lastUpdate = document.getElementById("lastUpdate");
 
     // États
-    this.loadingState = document.getElementById('loadingState');
-    this.emptyState = document.getElementById('emptyState');
-    this.emptySearchState = document.getElementById('emptySearchState');
+    this.loadingState = document.getElementById("loadingState");
+    this.emptyState = document.getElementById("emptyState");
+    this.emptySearchState = document.getElementById("emptySearchState");
 
     // Boutons d'action
-    this.refreshBtn = document.getElementById('refreshBtn');
-    this.clearBtn = document.getElementById('clearBtn');
-    this.settingsBtn = document.getElementById('settingsBtn');
+    this.refreshBtn = document.getElementById("refreshBtn");
+    this.clearBtn = document.getElementById("clearBtn");
+    this.settingsBtn = document.getElementById("settingsBtn");
 
     // Filtres
-    this.filterTabs = document.querySelectorAll('.filter-tab');
+    this.filterTabs = document.querySelectorAll(".filter-tab");
 
     // Modales
-    this.confirmModal = document.getElementById('confirmModal');
-    this.settingsModal = document.getElementById('settingsModal');
-    this.modalTitle = document.getElementById('modalTitle');
-    this.modalMessage = document.getElementById('modalMessage');
-    this.modalConfirm = document.getElementById('modalConfirm');
-    this.modalCancel = document.getElementById('modalCancel');
-    this.modalClose = document.getElementById('modalClose');
-    this.settingsModalClose = document.getElementById('settingsModalClose');
+    this.confirmModal = document.getElementById("confirmModal");
+    this.settingsModal = document.getElementById("settingsModal");
+    this.modalTitle = document.getElementById("modalTitle");
+    this.modalMessage = document.getElementById("modalMessage");
+    this.modalConfirm = document.getElementById("modalConfirm");
+    this.modalCancel = document.getElementById("modalCancel");
+    this.modalClose = document.getElementById("modalClose");
+    this.settingsModalClose = document.getElementById("settingsModalClose");
 
     // Paramètres
-    this.autoCleanupCheckbox = document.getElementById('autoCleanup');
-    this.showFaviconsCheckbox = document.getElementById('showFavicons');
-    this.groupByDomainCheckbox = document.getElementById('groupByDomain');
-    this.saveSettingsBtn = document.getElementById('saveSettings');
+    this.autoCleanupCheckbox = document.getElementById("autoCleanup");
+    this.showFaviconsCheckbox = document.getElementById("showFavicons");
+    this.groupByDomainCheckbox = document.getElementById("groupByDomain");
+    this.saveSettingsBtn = document.getElementById("saveSettings");
   }
 
   /**
@@ -71,46 +74,53 @@ class TabHistoryPopup {
    */
   setupEventListeners() {
     // Recherche
-    this.searchInput.addEventListener('input', 
+    this.searchInput.addEventListener(
+      "input",
       Utils.debounce((e) => this.handleSearch(e.target.value), 300)
     );
-    this.searchClear.addEventListener('click', () => this.clearSearch());
+    this.searchClear.addEventListener("click", () => this.clearSearch());
 
     // Filtres
-    this.filterTabs.forEach(tab => {
-      tab.addEventListener('click', () => this.handleFilterChange(tab.dataset.filter));
+    this.filterTabs.forEach((tab) => {
+      tab.addEventListener("click", () =>
+        this.handleFilterChange(tab.dataset.filter)
+      );
     });
 
     // Actions principales
-    this.refreshBtn.addEventListener('click', () => this.loadTabHistory());
-    this.clearBtn.addEventListener('click', () => this.showConfirmModal(
-      'Effacer tout l\'historique',
-      'Cette action supprimera définitivement tout l\'historique des onglets. Cette action ne peut pas être annulée.',
-      () => this.clearAllHistory()
-    ));
-    this.settingsBtn.addEventListener('click', () => this.showSettingsModal());
+    this.refreshBtn.addEventListener("click", () => this.loadTabHistory());
+    this.clearBtn.addEventListener("click", () =>
+      this.showConfirmModal(
+        "Effacer tout l'historique",
+        "Cette action supprimera définitivement tout l'historique des onglets. Cette action ne peut pas être annulée.",
+        () => this.clearAllHistory()
+      )
+    );
+    this.settingsBtn.addEventListener("click", () => this.showSettingsModal());
 
     // Modales
-    this.modalCancel.addEventListener('click', () => this.hideConfirmModal());
-    this.modalClose.addEventListener('click', () => this.hideConfirmModal());
-    this.settingsModalClose.addEventListener('click', () => this.hideSettingsModal());
-    this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+    this.modalCancel.addEventListener("click", () => this.hideConfirmModal());
+    this.modalClose.addEventListener("click", () => this.hideConfirmModal());
+    this.settingsModalClose.addEventListener("click", () =>
+      this.hideSettingsModal()
+    );
+    this.saveSettingsBtn.addEventListener("click", () => this.saveSettings());
 
     // Fermeture des modales en cliquant sur l'overlay
-    this.confirmModal.addEventListener('click', (e) => {
+    this.confirmModal.addEventListener("click", (e) => {
       if (e.target === this.confirmModal) this.hideConfirmModal();
     });
-    this.settingsModal.addEventListener('click', (e) => {
+    this.settingsModal.addEventListener("click", (e) => {
       if (e.target === this.settingsModal) this.hideSettingsModal();
     });
 
     // Raccourcis clavier
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
         this.hideConfirmModal();
         this.hideSettingsModal();
       }
-      if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
+      if (e.key === "/" || (e.ctrlKey && e.key === "f")) {
         e.preventDefault();
         this.searchInput.focus();
       }
@@ -122,13 +132,13 @@ class TabHistoryPopup {
    */
   async loadSettings() {
     try {
-      const result = await chrome.storage.local.get('tabHistorySettings');
+      const result = await chrome.storage.local.get("tabHistorySettings");
       if (result.tabHistorySettings) {
         this.settings = { ...this.settings, ...result.tabHistorySettings };
       }
       this.updateSettingsUI();
     } catch (error) {
-      console.error('Erreur lors du chargement des paramètres:', error);
+      console.error("Erreur lors du chargement des paramètres:", error);
     }
   }
 
@@ -152,11 +162,11 @@ class TabHistoryPopup {
 
       await chrome.storage.local.set({ tabHistorySettings: this.settings });
       this.hideSettingsModal();
-      
+
       // Recharger l'affichage si nécessaire
       this.renderTabList();
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      console.error("Erreur lors de la sauvegarde:", error);
     }
   }
 
@@ -165,16 +175,40 @@ class TabHistoryPopup {
    */
   async loadTabHistory() {
     try {
+      console.log("🔄 [Popup] Chargement de l'historique...");
       this.showLoadingState();
-      
-      this.allEntries = await this.storage.getSortedTabActivities();
+
+      // Essayer d'abord de communiquer avec le service worker
+      try {
+        const response = await chrome.runtime.sendMessage({
+          action: "getTabData",
+        });
+        if (response && response.success) {
+          this.allEntries = response.data;
+          console.log(
+            "📋 [Popup] Entrées récupérées via service worker:",
+            this.allEntries.length
+          );
+        } else {
+          throw new Error("Service worker non disponible");
+        }
+      } catch (error) {
+        console.log(
+          "⚠️ [Popup] Service worker non disponible, utilisation du storage local"
+        );
+        this.allEntries = await this.storage.getSortedTabActivities();
+        console.log(
+          "📋 [Popup] Entrées récupérées localement:",
+          this.allEntries.length
+        );
+      }
+
       this.applyFilters();
-      
+
       this.updateLastUpdateTime();
       this.hideLoadingState();
-      
     } catch (error) {
-      console.error('Erreur lors du chargement:', error);
+      console.error("❌ [Popup] Erreur lors du chargement:", error);
       this.hideLoadingState();
       this.showEmptyState();
     }
@@ -192,7 +226,7 @@ class TabHistoryPopup {
     }
 
     // Filtre par catégorie
-    if (this.currentFilter !== 'all') {
+    if (this.currentFilter !== "all") {
       filtered = this.applyContentFilter(filtered, this.currentFilter);
     }
 
@@ -209,11 +243,13 @@ class TabHistoryPopup {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     switch (filter) {
-      case 'today':
-        return entries.filter(entry => new Date(entry.lastUpdated) >= today);
-      case 'video':
-      case 'streaming':
-        return entries.filter(entry => Utils.getContentType(entry.url) === filter);
+      case "today":
+        return entries.filter((entry) => new Date(entry.lastUpdated) >= today);
+      case "video":
+      case "streaming":
+        return entries.filter(
+          (entry) => Utils.getContentType(entry.url) === filter
+        );
       default:
         return entries;
     }
@@ -233,9 +269,9 @@ class TabHistoryPopup {
    */
   updateSearchUI() {
     if (this.currentSearchTerm) {
-      this.searchClear.classList.add('visible');
+      this.searchClear.classList.add("visible");
     } else {
-      this.searchClear.classList.remove('visible');
+      this.searchClear.classList.remove("visible");
     }
   }
 
@@ -243,8 +279,8 @@ class TabHistoryPopup {
    * Efface la recherche
    */
   clearSearch() {
-    this.searchInput.value = '';
-    this.currentSearchTerm = '';
+    this.searchInput.value = "";
+    this.currentSearchTerm = "";
     this.updateSearchUI();
     this.applyFilters();
   }
@@ -254,8 +290,8 @@ class TabHistoryPopup {
    */
   handleFilterChange(filter) {
     // Mettre à jour l'état des onglets de filtre
-    this.filterTabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.filter === filter);
+    this.filterTabs.forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.filter === filter);
     });
 
     this.currentFilter = filter;
@@ -291,8 +327,8 @@ class TabHistoryPopup {
     const grouped = Utils.groupByDomain(this.filteredEntries);
     const html = Object.entries(grouped)
       .map(([domain, entries]) => this.renderDomainGroup(domain, entries))
-      .join('');
-    
+      .join("");
+
     this.tabList.innerHTML = html;
     this.attachTabEventListeners();
   }
@@ -303,8 +339,8 @@ class TabHistoryPopup {
   renderFlatTabList() {
     const html = this.filteredEntries
       .map((entry, index) => this.renderTabItem(entry, index))
-      .join('');
-    
+      .join("");
+
     this.tabList.innerHTML = html;
     this.attachTabEventListeners();
   }
@@ -315,15 +351,15 @@ class TabHistoryPopup {
   renderDomainGroup(domain, entries) {
     const domainName = Utils.getSiteName(domain);
     const domainColor = Utils.getDomainColor(domain);
-    
+
     return `
       <div class="domain-group">
         <div class="domain-header" style="border-left: 3px solid ${domainColor}">
           <h3>${domainName}</h3>
-          <span class="domain-count">${entries.length} onglet${entries.length > 1 ? 's' : ''}</span>
+          <span class="domain-count">${entries.length} onglet${entries.length > 1 ? "s" : ""}</span>
         </div>
         <div class="domain-entries">
-          ${entries.map(entry => this.renderTabItem(entry)).join('')}
+          ${entries.map((entry) => this.renderTabItem(entry)).join("")}
         </div>
       </div>
     `;
@@ -343,9 +379,10 @@ class TabHistoryPopup {
     return `
       <div class="tab-item" data-tab-key="tab_${entry.tabId}" data-url="${entry.url}" style="animation-delay: ${index * 50}ms">
         <div class="tab-favicon">
-          ${this.settings.showFavicons && entry.favIconUrl ? 
-            `<img src="${entry.favIconUrl}" alt="${siteName}" onerror="this.style.display='none'">` : 
-            `<span class="fallback">${siteName.charAt(0).toUpperCase()}</span>`
+          ${
+            this.settings.showFavicons && entry.favIconUrl
+              ? `<img src="${entry.favIconUrl}" alt="${siteName}" onerror="this.style.display='none'">`
+              : `<span class="fallback">${siteName.charAt(0).toUpperCase()}</span>`
           }
           <div class="content-type-badge" title="${contentType}">
             ${contentIcon}
@@ -373,22 +410,22 @@ class TabHistoryPopup {
    */
   attachTabEventListeners() {
     // Clic sur un onglet pour l'ouvrir
-    this.tabList.querySelectorAll('.tab-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        if (!e.target.closest('.tab-delete')) {
+    this.tabList.querySelectorAll(".tab-item").forEach((item) => {
+      item.addEventListener("click", (e) => {
+        if (!e.target.closest(".tab-delete")) {
           this.openTab(item.dataset.url);
         }
       });
     });
 
     // Boutons de suppression
-    this.tabList.querySelectorAll('.tab-delete').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    this.tabList.querySelectorAll(".tab-delete").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const tabKey = btn.dataset.tabKey;
         this.showConfirmModal(
-          'Supprimer cette entrée',
-          'Êtes-vous sûr de vouloir supprimer cette entrée de l\'historique ?',
+          "Supprimer cette entrée",
+          "Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ?",
           () => this.deleteEntry(tabKey)
         );
       });
@@ -403,7 +440,7 @@ class TabHistoryPopup {
       await chrome.tabs.create({ url, active: true });
       window.close();
     } catch (error) {
-      console.error('Erreur lors de l\'ouverture de l\'onglet:', error);
+      console.error("Erreur lors de l'ouverture de l'onglet:", error);
     }
   }
 
@@ -416,7 +453,7 @@ class TabHistoryPopup {
       this.hideConfirmModal();
       await this.loadTabHistory();
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
+      console.error("Erreur lors de la suppression:", error);
     }
   }
 
@@ -429,7 +466,7 @@ class TabHistoryPopup {
       this.hideConfirmModal();
       await this.loadTabHistory();
     } catch (error) {
-      console.error('Erreur lors de l\'effacement:', error);
+      console.error("Erreur lors de l'effacement:", error);
     }
   }
 
@@ -439,11 +476,11 @@ class TabHistoryPopup {
   updateEntryCount() {
     const count = this.filteredEntries.length;
     const total = this.allEntries.length;
-    
-    if (this.currentSearchTerm || this.currentFilter !== 'all') {
+
+    if (this.currentSearchTerm || this.currentFilter !== "all") {
       this.entryCount.textContent = `${count} sur ${total} onglets`;
     } else {
-      this.entryCount.textContent = `${count} onglet${count > 1 ? 's' : ''}`;
+      this.entryCount.textContent = `${count} onglet${count > 1 ? "s" : ""}`;
     }
   }
 
@@ -451,9 +488,9 @@ class TabHistoryPopup {
    * Met à jour l'heure de dernière mise à jour
    */
   updateLastUpdateTime() {
-    this.lastUpdate.textContent = new Date().toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
+    this.lastUpdate.textContent = new Date().toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
@@ -462,7 +499,7 @@ class TabHistoryPopup {
    */
   showLoadingState() {
     this.hideAllStates();
-    this.loadingState.style.display = 'flex';
+    this.loadingState.style.display = "flex";
   }
 
   /**
@@ -470,7 +507,7 @@ class TabHistoryPopup {
    */
   showEmptyState() {
     this.hideAllStates();
-    this.emptyState.style.display = 'flex';
+    this.emptyState.style.display = "flex";
   }
 
   /**
@@ -478,23 +515,23 @@ class TabHistoryPopup {
    */
   showEmptySearchState() {
     this.hideAllStates();
-    this.emptySearchState.style.display = 'flex';
+    this.emptySearchState.style.display = "flex";
   }
 
   /**
    * Cache l'état de chargement
    */
   hideLoadingState() {
-    this.loadingState.style.display = 'none';
+    this.loadingState.style.display = "none";
   }
 
   /**
    * Cache tous les états
    */
   hideAllStates() {
-    this.loadingState.style.display = 'none';
-    this.emptyState.style.display = 'none';
-    this.emptySearchState.style.display = 'none';
+    this.loadingState.style.display = "none";
+    this.emptyState.style.display = "none";
+    this.emptySearchState.style.display = "none";
   }
 
   /**
@@ -504,32 +541,88 @@ class TabHistoryPopup {
     this.modalTitle.textContent = title;
     this.modalMessage.textContent = message;
     this.modalConfirm.onclick = onConfirm;
-    this.confirmModal.style.display = 'flex';
+    this.confirmModal.style.display = "flex";
   }
 
   /**
    * Cache la modal de confirmation
    */
   hideConfirmModal() {
-    this.confirmModal.style.display = 'none';
+    this.confirmModal.style.display = "none";
   }
 
   /**
    * Affiche la modal des paramètres
    */
   showSettingsModal() {
-    this.settingsModal.style.display = 'flex';
+    this.settingsModal.style.display = "flex";
   }
 
   /**
    * Cache la modal des paramètres
    */
   hideSettingsModal() {
-    this.settingsModal.style.display = 'none';
+    this.settingsModal.style.display = "none";
+  }
+
+  /**
+   * Ajoute un bouton de test pour le débogage
+   */
+  addTestButton() {
+    // Créer un bouton de test temporaire
+    const testButton = document.createElement("button");
+    testButton.textContent = "🧪 Test Extension";
+    testButton.className = "btn btn-small";
+    testButton.style.marginLeft = "8px";
+    testButton.onclick = () => this.testExtension();
+
+    // Ajouter le bouton à côté du bouton paramètres
+    const footerActions = document.querySelector(".footer-actions");
+    if (footerActions) {
+      footerActions.appendChild(testButton);
+    }
+  }
+
+  /**
+   * Teste le fonctionnement de l'extension
+   */
+  async testExtension() {
+    try {
+      console.log("🧪 [Test] Début du test de l'extension...");
+
+      // Test 1: Vérifier le storage
+      const storageData = await chrome.storage.local.get("tabActivityTracker");
+      console.log("🧪 [Test] Données dans le storage:", storageData);
+
+      // Test 2: Vérifier les onglets actuels
+      const tabs = await chrome.tabs.query({});
+      console.log("🧪 [Test] Onglets actuels:", tabs.length);
+
+      // Test 3: Simuler une sauvegarde
+      if (tabs.length > 0) {
+        const firstTab = tabs[0];
+        console.log("🧪 [Test] Simulation sauvegarde onglet:", firstTab.url);
+        await this.storage.saveTabActivity(
+          firstTab.id,
+          firstTab.url,
+          firstTab.title,
+          firstTab.favIconUrl
+        );
+      }
+
+      // Test 4: Recharger les données
+      await this.loadTabHistory();
+
+      console.log("🧪 [Test] Test terminé");
+      alert("Test terminé! Vérifiez la console pour les détails.");
+    } catch (error) {
+      console.error("❌ [Test] Erreur lors du test:", error);
+      alert("Erreur lors du test: " + error.message);
+    }
   }
 }
 
 // Initialiser l'application quand le DOM est chargé
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   new TabHistoryPopup();
 });

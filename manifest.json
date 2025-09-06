@@ -3,13 +3,10 @@
   "name": "Tab Activity Tracker",
   "version": "1.0.0",
   "description": "Enregistre automatiquement la dernière URL de chaque onglet pour un accès rapide même après fermeture",
-  "permissions": [
-    "tabs",
-    "storage",
-    "activeTab"
-  ],
+  "permissions": ["tabs", "storage", "activeTab"],
+  "host_permissions": ["http://*/*", "https://*/*"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-standalone.js"
   },
   "action": {
     "default_popup": "popup.html",

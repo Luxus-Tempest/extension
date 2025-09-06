@@ -5,7 +5,7 @@
 
 export class TabStorage {
   constructor() {
-    this.storageKey = 'tabActivityTracker';
+    this.storageKey = "tabActivityTracker";
     this.maxEntries = 100; // Limite pour éviter un stockage excessif
   }
 
@@ -18,31 +18,38 @@ export class TabStorage {
    */
   async saveTabActivity(tabId, url, title, favIconUrl = null) {
     try {
+      console.log("💾 [Storage] Sauvegarde onglet:", { tabId, url, title });
+
       // Ignorer les URLs système et internes
       if (this.shouldIgnoreUrl(url)) {
+        console.log("⏭️ [Storage] URL ignorée:", url);
         return;
       }
 
       const tabData = await this.getTabData();
       const timestamp = Date.now();
-      
+
       // Créer ou mettre à jour l'entrée pour cet onglet
       const tabKey = `tab_${tabId}`;
-      tabData[tabKey] = {
+      const entry = {
         tabId,
         url,
         title: title || this.extractTitleFromUrl(url),
         favIconUrl,
         lastUpdated: timestamp,
-        domain: this.extractDomain(url)
+        domain: this.extractDomain(url),
       };
+
+      tabData[tabKey] = entry;
+      console.log("📝 [Storage] Entrée créée/mise à jour:", entry);
 
       // Nettoyer les anciennes entrées si nécessaire
       await this.cleanupOldEntries(tabData);
-      
+
       await chrome.storage.local.set({ [this.storageKey]: tabData });
+      console.log("✅ [Storage] Données sauvegardées dans le storage");
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      console.error("❌ [Storage] Erreur lors de la sauvegarde:", error);
     }
   }
 
@@ -54,13 +61,13 @@ export class TabStorage {
     try {
       const tabData = await this.getTabData();
       const tabKey = `tab_${tabId}`;
-      
+
       if (tabData[tabKey]) {
         delete tabData[tabKey];
         await chrome.storage.local.set({ [this.storageKey]: tabData });
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
+      console.error("Erreur lors de la suppression:", error);
     }
   }
 
@@ -71,9 +78,15 @@ export class TabStorage {
   async getTabData() {
     try {
       const result = await chrome.storage.local.get(this.storageKey);
-      return result[this.storageKey] || {};
+      const data = result[this.storageKey] || {};
+      console.log(
+        "📖 [Storage] Données récupérées:",
+        Object.keys(data).length,
+        "entrées"
+      );
+      return data;
     } catch (error) {
-      console.error('Erreur lors de la récupération:', error);
+      console.error("❌ [Storage] Erreur lors de la récupération:", error);
       return {};
     }
   }
@@ -84,8 +97,7 @@ export class TabStorage {
    */
   async getSortedTabActivities() {
     const tabData = await this.getTabData();
-    return Object.values(tabData)
-      .sort((a, b) => b.lastUpdated - a.lastUpdated);
+    return Object.values(tabData).sort((a, b) => b.lastUpdated - a.lastUpdated);
   }
 
   /**
@@ -100,7 +112,7 @@ export class TabStorage {
         await chrome.storage.local.set({ [this.storageKey]: tabData });
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'entrée:', error);
+      console.error("Erreur lors de la suppression de l'entrée:", error);
     }
   }
 
@@ -111,7 +123,7 @@ export class TabStorage {
     try {
       await chrome.storage.local.remove(this.storageKey);
     } catch (error) {
-      console.error('Erreur lors de l\'effacement:', error);
+      console.error("Erreur lors de l'effacement:", error);
     }
   }
 
@@ -121,12 +133,20 @@ export class TabStorage {
    * @returns {boolean}
    */
   shouldIgnoreUrl(url) {
-    const ignoredProtocols = ['chrome:', 'chrome-extension:', 'moz-extension:', 'about:', 'edge:'];
-    const ignoredUrls = ['newtab', 'blank'];
-    
-    return ignoredProtocols.some(protocol => url.startsWith(protocol)) ||
-           ignoredUrls.some(ignored => url.includes(ignored)) ||
-           url.length < 5;
+    const ignoredProtocols = [
+      "chrome:",
+      "chrome-extension:",
+      "moz-extension:",
+      "about:",
+      "edge:",
+    ];
+    const ignoredUrls = ["newtab", "blank"];
+
+    return (
+      ignoredProtocols.some((protocol) => url.startsWith(protocol)) ||
+      ignoredUrls.some((ignored) => url.includes(ignored)) ||
+      url.length < 5
+    );
   }
 
   /**
@@ -138,7 +158,7 @@ export class TabStorage {
     try {
       return new URL(url).hostname;
     } catch {
-      return 'Domaine inconnu';
+      return "Domaine inconnu";
     }
   }
 
@@ -152,7 +172,7 @@ export class TabStorage {
       const urlObj = new URL(url);
       return urlObj.hostname + urlObj.pathname;
     } catch {
-      return url.substring(0, 50) + '...';
+      return url.substring(0, 50) + "...";
     }
   }
 
@@ -164,15 +184,17 @@ export class TabStorage {
     const entries = Object.entries(tabData);
     if (entries.length > this.maxEntries) {
       // Trier par date et garder seulement les plus récentes
-      const sortedEntries = entries.sort((a, b) => b[1].lastUpdated - a[1].lastUpdated);
+      const sortedEntries = entries.sort(
+        (a, b) => b[1].lastUpdated - a[1].lastUpdated
+      );
       const toKeep = sortedEntries.slice(0, this.maxEntries);
-      
+
       // Reconstruire l'objet avec seulement les entrées à garder
       const cleanedData = {};
       toKeep.forEach(([key, value]) => {
         cleanedData[key] = value;
       });
-      
+
       await chrome.storage.local.set({ [this.storageKey]: cleanedData });
     }
   }

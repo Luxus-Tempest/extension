@@ -3,14 +3,15 @@
  * Enregistre automatiquement les URLs des onglets actifs
  */
 
-import { TabStorage } from './modules/storage.js';
+// Import dynamique pour les modules ES6 dans le service worker
+let TabStorage;
 
 class TabActivityTracker {
   constructor() {
     this.storage = new TabStorage();
     this.updateThrottleTime = 2000; // Délai minimum entre les mises à jour (2s)
     this.lastUpdateTimes = new Map(); // Cache des dernières mises à jour par onglet
-    
+
     this.initializeListeners();
   }
 
@@ -50,12 +51,14 @@ class TabActivityTracker {
    */
   async handleTabActivated(tabId) {
     try {
+      console.log("🔄 Onglet activé:", tabId);
       const tab = await chrome.tabs.get(tabId);
       if (tab && tab.url) {
+        console.log("💾 Sauvegarde onglet activé:", tab.url);
         await this.saveTabActivity(tab);
       }
     } catch (error) {
-      console.error('Erreur lors de l\'activation d\'onglet:', error);
+      console.error("Erreur lors de l'activation d'onglet:", error);
     }
   }
 
@@ -67,21 +70,26 @@ class TabActivityTracker {
    */
   async handleTabUpdated(tabId, changeInfo, tab) {
     try {
+      console.log("🔄 Onglet mis à jour:", tabId, changeInfo);
+
       // Ne sauvegarder que si l'URL ou le titre a changé et que la page est complètement chargée
-      if ((changeInfo.url || changeInfo.title) && 
-          tab.status === 'complete' && 
-          tab.url) {
-        
+      if (
+        (changeInfo.url || changeInfo.title) &&
+        tab.status === "complete" &&
+        tab.url
+      ) {
         // Vérifier le throttling pour éviter trop de mises à jour
         if (this.shouldThrottleUpdate(tabId)) {
+          console.log("⏱️ Mise à jour throttlée pour onglet:", tabId);
           return;
         }
 
+        console.log("💾 Sauvegarde onglet mis à jour:", tab.url);
         await this.saveTabActivity(tab);
         this.lastUpdateTimes.set(tabId, Date.now());
       }
     } catch (error) {
-      console.error('Erreur lors de la mise à jour d\'onglet:', error);
+      console.error("Erreur lors de la mise à jour d'onglet:", error);
     }
   }
 
@@ -93,11 +101,11 @@ class TabActivityTracker {
     try {
       // Nettoyer le cache de throttling
       this.lastUpdateTimes.delete(tabId);
-      
+
       // Note: On ne supprime pas l'entrée du storage car on veut garder l'historique
       // même après fermeture de l'onglet
     } catch (error) {
-      console.error('Erreur lors de la fermeture d\'onglet:', error);
+      console.error("Erreur lors de la fermeture d'onglet:", error);
     }
   }
 
@@ -108,12 +116,15 @@ class TabActivityTracker {
   async handleWindowFocusChanged(windowId) {
     try {
       // Obtenir l'onglet actif de la fenêtre focalisée
-      const tabs = await chrome.tabs.query({ active: true, windowId: windowId });
+      const tabs = await chrome.tabs.query({
+        active: true,
+        windowId: windowId,
+      });
       if (tabs.length > 0 && tabs[0].url) {
         await this.saveTabActivity(tabs[0]);
       }
     } catch (error) {
-      console.error('Erreur lors du changement de focus:', error);
+      console.error("Erreur lors du changement de focus:", error);
     }
   }
 
@@ -123,14 +134,23 @@ class TabActivityTracker {
    */
   async saveTabActivity(tab) {
     try {
+      console.log("💾 Sauvegarde activité onglet:", {
+        id: tab.id,
+        url: tab.url,
+        title: tab.title,
+        favIconUrl: tab.favIconUrl,
+      });
+
       await this.storage.saveTabActivity(
         tab.id,
         tab.url,
         tab.title,
         tab.favIconUrl
       );
+
+      console.log("✅ Activité onglet sauvegardée avec succès");
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      console.error("❌ Erreur lors de la sauvegarde:", error);
     }
   }
 
@@ -142,8 +162,8 @@ class TabActivityTracker {
   shouldThrottleUpdate(tabId) {
     const lastUpdate = this.lastUpdateTimes.get(tabId);
     if (!lastUpdate) return false;
-    
-    return (Date.now() - lastUpdate) < this.updateThrottleTime;
+
+    return Date.now() - lastUpdate < this.updateThrottleTime;
   }
 
   /**
@@ -151,15 +171,24 @@ class TabActivityTracker {
    */
   async initializeOnStartup() {
     try {
+      console.log("🚀 Initialisation du tracker d'onglets...");
+
       // Enregistrer tous les onglets ouverts au démarrage
       const tabs = await chrome.tabs.query({});
+      console.log(`📋 ${tabs.length} onglets trouvés au démarrage`);
+
       for (const tab of tabs) {
         if (tab.url && !this.storage.shouldIgnoreUrl(tab.url)) {
+          console.log("💾 Sauvegarde onglet au démarrage:", tab.url);
           await this.saveTabActivity(tab);
+        } else {
+          console.log("⏭️ Onglet ignoré:", tab.url);
         }
       }
+
+      console.log("✅ Initialisation terminée");
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation:', error);
+      console.error("❌ Erreur lors de l'initialisation:", error);
     }
   }
 }
@@ -169,5 +198,8 @@ const tracker = new TabActivityTracker();
 
 // Gérer l'installation/mise à jour de l'extension
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log('Extension Tab Activity Tracker installée/mise à jour:', details.reason);
+  console.log(
+    "Extension Tab Activity Tracker installée/mise à jour:",
+    details.reason
+  );
 });
