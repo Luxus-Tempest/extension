@@ -133,3 +133,4 @@ Après vos tests, notez :
 ---
 
 **Note :** Si vous rencontrez des problèmes, consultez le fichier `DEBUG.md` pour des instructions de débogage détaillées.
+

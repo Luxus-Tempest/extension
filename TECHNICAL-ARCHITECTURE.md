@@ -490,3 +490,4 @@ class AnalyticsService {
 - Enterprise features
 
 Cette architecture technique permet de construire une plateforme scalable et robuste pour votre vision de TabSpace ! 🚀
+

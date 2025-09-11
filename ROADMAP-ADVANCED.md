@@ -297,3 +297,4 @@ Frontend (Extension) ↔ API Gateway ↔ Microservices
    - WebSocket pour real-time
 
 Cette roadmap transforme votre extension en une plateforme complète de navigation collaborative avec un potentiel de monétisation énorme ! 🚀
+

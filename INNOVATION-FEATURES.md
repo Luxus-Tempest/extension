@@ -404,3 +404,4 @@ const virtualSpace = {
 - Métavers décentralisé
 
 Ces fonctionnalités innovantes transforment votre extension en une plateforme révolutionnaire de navigation collaborative ! 🚀
+

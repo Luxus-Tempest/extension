@@ -152,3 +152,4 @@ Si le problème persiste, vérifiez :
 2. Les permissions de l'extension
 3. Que l'extension est bien activée
 4. Les logs de débogage détaillés
+
